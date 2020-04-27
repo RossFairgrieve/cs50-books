@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+Book Search
+{% endblock %}
+
+{% block body %}
+<p>Logged in as {{ username }}</p>
+
+<form action="{{ url_for('search') }}" method="post">
+  <div class="form-group">
+    <label for="search_by">Search by</label><br>
+    <input type="radio" id="isbn" name="search_by" value="isbn">
+    <label for="isbn">ISBN</label><br>
+    <input type="radio" id="author" name="search_by" value="author">
+    <label for="female">Author</label><br>
+    <input type="radio" id="title" name="search_by" value="title">
+    <label for="title">Title</label><br>
+  </div>
+    <div class="form-group">
+    <input type="text" class="form-control form-control-lg" name="search_term" placeholder="Your search"><br>
+  </div>
+  <div class="form-group form-check">
+    <input type="checkbox" class="form-check-input" name="partial" value="partial" checked>
+    <label for="partial" class="form-check-label">Include partial matches</label>
+  </div>
+  <button>Search</button>
+</form>
+
+{% endblock %}
