@@ -37,10 +37,7 @@ def search():
         search_term = f"%{search_term}%"
     results = db.execute(f"SELECT * FROM books WHERE lower({search_type}) LIKE (:search_term);",
                          {"search_term": search_term}).fetchall()
-    if len(results) == 0:
-        return "No books match your search"
-    else:
-        return render_template("search_results.html", results=results)
+    return render_template("search_results.html", results=results, num_results=len(results))
 
 @app.route("/login", methods=["POST"])
 def login():

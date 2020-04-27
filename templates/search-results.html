@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+Search Results
+{% endblock %}
+
+{% block body %}
+<h4>{{ num_results }} books matched your search:</h4>
+<ul>
+  {% for result in results %}
+    <li><a href="{{ url_for('book', isbn=result.isbn) }}">{{ result.title }} -  {{ result.author }} ({{result.year}})</a></li>
+  {% endfor %}
+</ul>
+<a href="/">Search again</a>
+{% endblock %}
