@@ -5,12 +5,33 @@ Book Details
 {% endblock %}
 
 {% block body %}
-<p>Title: {{ book.title }}</p>
-<p>Author: {{book.author }}</p>
-<p>Year: {{ book.year }}</p>
-<p>ISBN: {{ book.isbn }}</p>
+<div id="book-details" class="book-block">
+  <p>Title: {{ book.title }}</p>
+  <p>Author: {{book.author }}</p>
+  <p>Year: {{ book.year }}</p>
+  <p>ISBN: {{ book.isbn }}</p>
+</div>
 
-<div id="review-book">
+<div id=reviews class="book-block">
+  <h4>Reviews</h4>
+  {% for review in reviews %}
+    <div class="single-review">
+      <div class="row">
+        <div class="col-sm-4">
+          Reviewer: {{ review.username }}
+        </div>
+        <div class="col-sm-4">
+          Rating: {{ review.rating }} out of 5
+        </div>
+      </div>
+      <div class="review-text">
+        {{ review.revtext }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div id="review-book" class="book-block">
   <h4>Review this book</h4>
   {% if errormessage != "" %}
   <div class="alert alert-danger">{{ errormessage }}</div>
@@ -53,10 +74,6 @@ Book Details
 
     <button class="btn btn-primary">Submit</button>
   </form>
-</div>
-
-<div id=reviews>
-
 </div>
 
 <a href="/">Back to search</a>

@@ -86,10 +86,11 @@ def login():
 
 @app.route("/books/<isbn>", methods=["GET", "POST"])
 def book(isbn):
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()
+    reviews = db.execute("SELECT * FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchall()
     if request.method == "GET":
         # List details of a single book
-        book = db.execute("SELECT * FROM books WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()
-        return render_template("book.html", book=book, errormessage="", successmessage="", show_logout=1)
+        return render_template("book.html", book=book, reviews=reviews, errormessage="", successmessage="", show_logout=1)
     else:
         # Get details from review form and attempt to post review
         username = session.get("username")
@@ -102,14 +103,14 @@ def book(isbn):
                              {"username": username, "isbn": isbn}).fetchone()
         # If user has already reviewed book, return to book page with alert
         if old_reviews != None:
-            return render_template("book.html", book=book, errormessage="You have already reviewed this book", successmessage="", show_logout=1)
+            return render_template("book.html", book=book, reviews=reviews, errormessage="You have already reviewed this book", successmessage="", show_logout=1)
         # If user hasn't already reviewed book, write review to database
         else:
             db.execute("""INSERT INTO reviews (username, isbn, rating, revtext)
                        VALUES (:username, :isbn, :rating, :revtext)""",
                        {"username": username, "isbn": isbn, "rating": rating, "revtext": revtext})
             db.commit()
-            return render_template("book.html", book=book, errormessage="", successmessage="Your review has been posted", show_logout=1)
+            return render_template("book.html", book=book, reviews=reviews, errormessage="", successmessage="Your review has been posted", show_logout=1)
 
 @app.route("/logout")
 def logout():

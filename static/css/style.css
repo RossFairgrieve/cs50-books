@@ -7,6 +7,16 @@ form {
   margin-bottom: 20px;
 }
 
-.review-book {
-  margin-top: 50px;
+.book-block{
+  margin-bottom: 30px;
+}
+
+.single-review {
+  margin-bottom: 20px;
+}
+
+.review-text {
+  width: 98%;
+  border: 1px solid #999;
+  padding: 20px;
 }
