@@ -34,7 +34,7 @@ def index():
 @app.route("/search", methods=["GET", "POST"])
 def search():
     if request.method == "GET":
-        return render_template("search.html")
+        return render_template("search.html", show_logout=1)
     else:
         search_type = request.form.get("search_by")
         search_term = request.form.get("search_term").lower()
@@ -42,7 +42,7 @@ def search():
             search_term = f"%{search_term}%"
         results = db.execute(f"SELECT * FROM books WHERE lower({search_type}) LIKE (:search_term);",
                              {"search_term": search_term}).fetchall()
-        return render_template("search-results.html", results=results, num_results=len(results))
+        return render_template("search-results.html", results=results, num_results=len(results), show_logout=1)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -80,7 +80,7 @@ def login():
             password = request.form.get("password")
             if password == results.password:
                 session["username"] = username
-                return render_template("login-success.html", username=username)
+                return render_template("login-success.html", username=username, show_logout=1)
             else:
                 return render_template("login.html", message="Password incorrect.")
     else:
@@ -90,7 +90,7 @@ def login():
 def book(isbn):
     # List details of a single book
     book = db.execute("SELECT * FROM books WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()
-    return render_template("book.html", book=book)
+    return render_template("book.html", book=book, show_logout=1)
 
 @app.route("/logout")
 def logout():
