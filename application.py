@@ -59,12 +59,10 @@ def register():
         if results != None:
             return render_template("register.html", message="An account with that email address already exists")
         else:
-            fname = request.form.get("fname")
-            surname = request.form.get("surname")
             password = request.form.get("password")
-            db.execute("""INSERT INTO users (fname, surname, username, password, email)
-                        VALUES (:fname, :surname, :username, :password, :email)""",
-                        {"fname": fname, "surname": surname, "username": username, "password": password, "email": email})
+            db.execute("""INSERT INTO users (username, password, email)
+                        VALUES (:username, :password, :email)""",
+                        {"username": username, "password": password, "email": email})
             db.commit()
             return render_template("registered.html")
 
