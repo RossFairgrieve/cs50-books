@@ -14,6 +14,9 @@ Book Details
 
 <div id=reviews class="book-block">
   <h4>Reviews</h4>
+  {% if reviews|length == 0 %}
+    <p>This book hasn't been reviewed yet.</p>
+  {% endif %}
   {% for review in reviews %}
     <div class="single-review">
       <div class="row">

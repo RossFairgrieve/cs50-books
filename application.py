@@ -110,6 +110,7 @@ def book(isbn):
                        VALUES (:username, :isbn, :rating, :revtext)""",
                        {"username": username, "isbn": isbn, "rating": rating, "revtext": revtext})
             db.commit()
+            reviews = db.execute("SELECT * FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchall()
             return render_template("book.html", book=book, reviews=reviews, errormessage="", successmessage="Your review has been posted", show_logout=1)
 
 @app.route("/logout")
