@@ -1,0 +1,12 @@
+body {
+  max-width: 900px;
+  padding: 30px;
+}
+
+.warning-message {
+  color: red;
+}
+
+form {
+  margin-bottom: 20px;
+}
