@@ -28,8 +28,7 @@ def main():
     db.execute("""CREATE TABLE users (
                username VARCHAR PRIMARY KEY,
                password VARCHAR NOT NULL,
-               fname VARCHAR NOT NULL,
-               surname VARCHAR NOT NULL);""")
+               email VARCHAR NOT NULL);""")
 
     db.commit()
 
