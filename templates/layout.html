@@ -7,7 +7,7 @@
 
 <body>
   {% if showlogout == 1 %}
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <p> Logged in as {{ username }} - <a href="{{ url_for('logout') }}">Logout</a>
   {% endif %}
 
   <h1>{% block heading %}{% endblock %}</h1>

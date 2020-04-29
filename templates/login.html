@@ -5,7 +5,7 @@ Login
 {% endblock %}
 
 {% block body %}
-<p class="warning-message">{{ message }}</p>
+<p class="alert alert-danger">{{ message }}</p>
 
 <form action="{{ url_for('login') }}" method="post">
   <div class="form-group">

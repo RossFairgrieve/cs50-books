@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, session, render_template, request, redirect, url_for
+from flask import Flask, session, render_template, request, redirect, url_for, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -22,8 +22,6 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
-# session['username'] = None
-
 @app.route("/")
 def index():
     if session.get("username") == None:
@@ -37,6 +35,7 @@ def index():
 def search():
     if request.method == "GET":
         return render_template("search.html",
+                               username=session.get("username"),
                                showlogout=1)
     else:
         search_type = request.form.get("search_by")
@@ -48,10 +47,12 @@ def search():
         return render_template("search-results.html",
                                results=results,
                                num_results=len(results),
+                               username=session.get("username"),
                                showlogout=1)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    # !! PASSWORD SECURITY NOT YET IMPLEMENTED !!
     if request.method == "GET":
         return render_template("register.html")
     else:
@@ -75,6 +76,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # !! PASSWORD SECURITY NOT YET IMPLEMENTED !!
     if request.method == "POST":
         # Check for existing user with that Username
         username = request.form.get("username")
@@ -86,9 +88,7 @@ def login():
             password = request.form.get("password")
             if password == results.password:
                 session["username"] = username
-                return render_template("login-success.html",
-                                       username=username,
-                                       showlogout=1)
+                return redirect(url_for('search'))
             else:
                 return render_template("login.html",
                                        message="Password incorrect.")
@@ -124,6 +124,7 @@ def book(isbn):
                                reviews=reviews,
                                errormessage="",
                                successmessage="",
+                               username=session.get("username"),
                                showlogout=1)
 
     # Do this if accessing via the review submission form (POST request)
@@ -149,6 +150,7 @@ def book(isbn):
                                    reviews=reviews,
                                    errormessage="You have already reviewed this book",
                                    successmessage="",
+                                   username=session.get("username"),
                                    showlogout=1)
 
         # If user hasn't already reviewed book, write review to database
@@ -160,10 +162,39 @@ def book(isbn):
             reviews = db.execute("SELECT * FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchall()
             return render_template("book.html",
                                    book=book,
+                                   grcount=grcount,
+                                   grrating=grrating,
                                    reviews=reviews,
                                    errormessage="",
                                    successmessage="Your review has been posted",
+                                   username=session.get("username"),
                                    showlogout=1)
+
+@app.route("/api/<isbn>")
+def api(isbn):
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()
+    if book == None:
+        data = {
+            "error": "ISBN is not present in database"
+        }
+        return jsonify(data), 404
+    else:
+        rev_count = db.execute("SELECT COUNT(rating) FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()[0]
+        if rev_count == 0:
+            average_score = 0
+        else:
+            average_score = float(str(db.execute("""SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM reviews WHERE isbn = :isbn;""", {"isbn": isbn}).fetchone()[0]))
+        data = {
+            "title": book.title,
+            "author": book.author,
+            "year": book.year,
+            "isbn": book.isbn,
+            "review_count": rev_count,
+            "average_score": average_score
+        }
+        return jsonify(data)
+
+
 
 # Allow logged in user to logout by clearing the session
 @app.route("/logout")
