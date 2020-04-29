@@ -5,7 +5,9 @@ Register
 {% endblock %}
 
 {% block body %}
+{% if message != "" %}
 <p class="alert alert-danger">{{ message }}</p>
+{% endif %}
 <form action="{{ url_for('register') }}" method="post">
   <div class="form-group">
     <label for="email">Email address</label>

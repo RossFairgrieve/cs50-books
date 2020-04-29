@@ -1,5 +1,4 @@
 import os
-
 from flask import Flask, session, render_template, request, redirect, url_for, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
@@ -28,8 +27,6 @@ def index():
         return redirect(url_for("login"))
     else:
         return redirect(url_for("search"))
-    # else:
-    # return render_template("search.html")
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -52,9 +49,9 @@ def search():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    # !! PASSWORD SECURITY NOT YET IMPLEMENTED !!
+    # !! PASSWORD ENCRYPTION NOT YET IMPLEMENTED !!
     if request.method == "GET":
-        return render_template("register.html")
+        return render_template("register.html", message="")
     else:
         # Check for existing users with that username
         username = request.form.get("username")
@@ -76,14 +73,16 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    # !! PASSWORD SECURITY NOT YET IMPLEMENTED !!
+    # !! PASSWORD ENCRYPTION NOT YET IMPLEMENTED !!
+    errormessage= ""
+    successmessage = ""
     if request.method == "POST":
         # Check for existing user with that Username
         username = request.form.get("username")
         results = db.execute("SELECT * FROM users WHERE username = :username", {"username": username}).fetchone()
         if results == None:
             return render_template("login.html",
-                                   message="Username does not exist.")
+                                   errormessage="Username does not exist.")
         else:
             password = request.form.get("password")
             if password == results.password:
@@ -91,9 +90,15 @@ def login():
                 return redirect(url_for('search'))
             else:
                 return render_template("login.html",
-                                       message="Password incorrect.")
+                                       errormessage="Password incorrect.")
     else:
-        return render_template("login.html")
+        return render_template("login.html", errormessage="")
+
+# Allow logged in user to logout by clearing the session
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 @app.route("/books/<isbn>", methods=["GET", "POST"])
 def book(isbn):
@@ -103,7 +108,8 @@ def book(isbn):
     # Get information from Goodreads API
     # If ISBN is in Goodreads database, store the ratings_count and average_rating values
     try:
-        goodreads = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "0KCqHvur2Et2F6blBKLDTA", "isbns": isbn}).json()
+        goodreads = requests.get("https://www.goodreads.com/book/review_counts.json",
+                                 params={"key": "0KCqHvur2Et2F6blBKLDTA", "isbns": isbn}).json()
         grcount = goodreads["books"][0]["ratings_count"]
         grrating = goodreads["books"][0]["average_rating"]
 
@@ -119,7 +125,7 @@ def book(isbn):
                          {"username": username, "isbn": isbn}).fetchone()
 
     # If they have already reviewed, add 'disabled' to form inputs in book.html
-    #as formactivity variable to avoid user posting a second review.
+    # as formactivity variable to avoid user posting a second review.
     if old_reviews != None:
         formactivity = "disabled"
         errormessage = "You have already reviewed this book"
@@ -129,7 +135,7 @@ def book(isbn):
 
     successmessage = ""  # This will be updated if user posts a review
 
-    # Render the following if accessing via link from search results (GET request)
+    # Do the following if accessing via review submission form (POST request)
     if request.method == "POST":
 
         if old_reviews == None:
@@ -148,7 +154,7 @@ def book(isbn):
             # Update reviews to include the one just added
             reviews = db.execute("SELECT * FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchall()
 
-    # List details of a single book
+    # Do the following in all cases
     return render_template("book.html",
                            book=book,
                            grcount=grcount,
@@ -183,11 +189,3 @@ def api(isbn):
             "average_score": average_score
         }
         return jsonify(data)
-
-
-
-# Allow logged in user to logout by clearing the session
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
