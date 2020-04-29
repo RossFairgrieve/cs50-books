@@ -113,62 +113,52 @@ def book(isbn):
         grcount = None
         grrating = None
 
-    # Render the following if accessing via link from search results (GET request)
-    if request.method == "GET":
+    # Check to see if the reviewer has already posted a review of this book
+    username = session.get("username")
+    old_reviews = db.execute("SELECT * FROM reviews WHERE username = :username AND isbn = :isbn",
+                         {"username": username, "isbn": isbn}).fetchone()
 
-        # List details of a single book
-        return render_template("book.html",
-                               book=book,
-                               grcount=grcount,
-                               grrating=grrating,
-                               reviews=reviews,
-                               errormessage="",
-                               successmessage="",
-                               username=session.get("username"),
-                               showlogout=1)
-
-    # Do this if accessing via the review submission form (POST request)
+    # If they have already reviewed, add 'disabled' to form inputs in book.html
+    #as formactivity variable to avoid user posting a second review.
+    if old_reviews != None:
+        formactivity = "disabled"
+        errormessage = "You have already reviewed this book"
     else:
-        book = db.execute("SELECT * FROM books WHERE isbn = :isbn;", {"isbn": isbn}).fetchone()
+        formactivity = ""
+        errormessage = ""
 
-        # Get details from review form
-        username = session.get("username")
-        isbn = request.form.get("isbn")
-        rating = request.form.get("rating")
-        revtext = request.form.get("revtext")
+    successmessage = ""  # This will be updated if user posts a review
 
-        # Check to see if the reviewer has already posted a review of this book
-        old_reviews = db.execute("SELECT * FROM reviews WHERE username = :username AND isbn = :isbn",
-                             {"username": username, "isbn": isbn}).fetchone()
+    # Render the following if accessing via link from search results (GET request)
+    if request.method == "POST":
 
-        # If user has already reviewed book, return to book page with alert
-        if old_reviews != None:
-            return render_template("book.html",
-                                   book=book,
-                                   grcount=grcount,
-                                   grrating=grrating,
-                                   reviews=reviews,
-                                   errormessage="You have already reviewed this book",
-                                   successmessage="",
-                                   username=session.get("username"),
-                                   showlogout=1)
+        if old_reviews == None:
 
-        # If user hasn't already reviewed book, write review to database
-        else:
+            # Get details from review form
+            rating = request.form.get("rating")
+            revtext = request.form.get("revtext")
+
             db.execute("""INSERT INTO reviews (username, isbn, rating, revtext)
                        VALUES (:username, :isbn, :rating, :revtext)""",
                        {"username": username, "isbn": isbn, "rating": rating, "revtext": revtext})
             db.commit()
+            successmessage = "Your review has been successfully posted"
+            formactivity = "disabled"
+
+            # Update reviews to include the one just added
             reviews = db.execute("SELECT * FROM reviews WHERE isbn = :isbn;", {"isbn": isbn}).fetchall()
-            return render_template("book.html",
-                                   book=book,
-                                   grcount=grcount,
-                                   grrating=grrating,
-                                   reviews=reviews,
-                                   errormessage="",
-                                   successmessage="Your review has been posted",
-                                   username=session.get("username"),
-                                   showlogout=1)
+
+    # List details of a single book
+    return render_template("book.html",
+                           book=book,
+                           grcount=grcount,
+                           grrating=grrating,
+                           reviews=reviews,
+                           formactivity=formactivity,
+                           errormessage=errormessage,
+                           successmessage=successmessage,
+                           username=session.get("username"),
+                           showlogout=1)
 
 @app.route("/api/<isbn>")
 def api(isbn):
