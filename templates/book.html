@@ -10,6 +10,9 @@ Book Details
   <p>Author: {{book.author }}</p>
   <p>Year: {{ book.year }}</p>
   <p>ISBN: {{ book.isbn }}</p>
+  {% if grrating != None %}
+  <p>Goodreads average rating: {{ grrating }} <span style="font-size: 11px;">(from {{ grcount }} reviews)</span></p>
+  {% endif %}
 </div>
 
 <div id=reviews class="book-block">
